@@ -19,7 +19,7 @@ SODIR = $(DESTDIR)$(prefix)/lib/lua/5.1/
 .PHONY: install
 install: $(BINDING)
 	mkdir -p $(SODIR)
-	../libnet/install-sh -t $(SODIR) $(BINDING)
+	install -t $(SODIR) $(BINDING)
 
 CWARNS = -Wall \
   -Wcast-align \
@@ -28,14 +28,14 @@ CWARNS = -Wall \
   -Wshadow \
   -Wwrite-strings
 
-DNETDEFS=$(shell dnet-config --cflags)
-LNETDEFS=$(shell sh ../libnet/libnet-config --cflags --defines) 
+DNETDEFS=$(shell dumbnet-config --cflags)
+LNETDEFS=$(shell libnet-config --cflags --defines)
 COPT=-O2 -DNDEBUG -g
-CFLAGS=$(CWARNS) $(CDEFS) $(CLUA) $(LDFLAGS) -I../libnet/include -L../libnet/src/.libs/
+CFLAGS=$(CWARNS) $(CDEFS) $(CLUA) $(LDFLAGS)
 LDLIBS=$(LLUA)
 
-LDDNET=$(shell dnet-config --libs)
-LDLNET=$(shell sh ../libnet/libnet-config --libs)
+LDDNET=$(shell dumbnet-config --libs)
+LDLNET=$(shell libnet-config --libs)
 
 CC.SO := $(CC) $(COPT) $(CFLAGS)
 
@@ -45,11 +45,6 @@ CC.SO := $(CC) $(COPT) $(CFLAGS)
 net.so: net.c libnet_decode.c
 net.so: LDLIBS+=$(LDDNET) $(LDLNET)
 net.so: CDEFS=$(DNETDEFS) $(LNETDEFS)
-net.so: dnet.h
-
-dnet.h:
-	if test -e /usr/include/dumbnet.h; then echo '#include<dumbnet.h>' > dnet.h; \
-	else echo '#include<dnet.h>' > dnet.h; fi
 
 TNET=$(wildcard test-*.lua)
 TOUT=$(TNET:.lua=.test)
@@ -60,14 +55,14 @@ echo:
 test: net.test $(TOUT)
 
 %.test: %.lua net.so
-	lua $<
+	lua5.1 $<
 	touch $@
 
 %.test: %-test %.so
-	lua $<
+	lua5.1 $<
 	touch $@
 
 %.test: %-test net.so
-	lua $<
+	lua5.1 $<
 	touch $@
 
